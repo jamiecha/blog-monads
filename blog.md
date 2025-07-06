@@ -410,7 +410,7 @@ let user = get_user_by_id(123)                    // 1단계: 사용자 조회
 
 ## 6. 개념들 간의 관계
 
-이제 모든 개념들이 어떻게 연결되어 있는지 살펴보겠습니다.
+이제 각각의 개념들이 어떻게 연결되어 있는지 살펴보겠습니다.
 
 ### 계층 구조
 
@@ -430,50 +430,6 @@ Monad <: ApplicativeFunctor <: Functor
 3. **엔도펑터**: 같은 컨테이너 내에서 값 변환
 4. **어플리커티브 펑터**: 함수를 적용하는 방법
 5. **모나드**: 순차적 연산을 체이닝하는 방법
-
-### 실제 사용 시나리오
-
-#### 펑터 사용 예시
-```rust
-// Option 값 변환 (값 변환의 활용)
-let user_id = Some(123);
-let user_name = user_id.fmap(|id| format!("user_{}", id));  // Some(123) -> Some("user_123")
-println!("{:?}", user_name); // Some("user_123")
-```
-
-#### 어플리커티브 펑터 사용 예시
-```rust
-// 여러 Option 값 조합 (병렬적 조합의 활용)
-#[derive(Debug)]
-struct Person {
-    name: String,
-    age: u32,
-    email: String,
-}
-
-let name = Some("김철수");
-let age = Some(25);
-let email = Some("kim@example.com");
-
-// 모든 값이 있을 때만 Person 생성 (병렬적 검증)
-let person = match (name, age, email) {
-    (Some(n), Some(a), Some(e)) => Some(Person { 
-        name: n.to_string(), 
-        age: a, 
-        email: e.to_string() 
-    }),
-    _ => None,  // 하나라도 None이면 전체 실패
-};
-```
-
-#### 모나드 사용 예시
-```rust
-// 데이터베이스 조회 체이닝 (순차적 연산의 활용)
-let user = get_user_by_id(123)                    // 1단계: 사용자 조회
-    .bind(|user| get_user_profile(user))          // 2단계: 프로필 조회
-    .bind(|profile| get_user_preferences(profile)) // 3단계: 설정 조회
-    .bind(|prefs| Some(format!("사용자 설정: {}", prefs))); // 4단계: 결과 포맷팅
-```
 
 ---
 
@@ -532,7 +488,7 @@ let result = pipeline(Some(initial_value));
 
 ## 8. 실제 Rust에서의 모나드
 
-Rust에서는 모나드가 여러 형태로 나타납니다:
+Rust에서는 모나드가 여러 형태로 나타나는데요, 대표적인 예는 다음과 같습니다.
 
 ### Option 모나드
 ```rust
@@ -565,7 +521,7 @@ let result: Vec<i32> = vec![1, 2, 3, 4, 5]
 
 ## 9. 마무리
 
-모나드와 관련 개념들을 살펴보면서 함수형 프로그래밍의 아름다움을 느끼셨나요? 
+모나드와 그 기반이 되는 개념들을 Rust언어 예제를 통해 살펴보셨습니다. 함수형 언어의 장점이 느껴지시나요?
 
 ### 핵심 정리
 
@@ -584,5 +540,5 @@ let result: Vec<i32> = vec![1, 2, 3, 4, 5]
 
 모나드는 처음에는 어려워 보이지만, 실제로는 우리가 일상에서 자주 사용하는 패턴을 수학적으로 정리한 것입니다. Rust의 강력한 타입 시스템과 함께 사용하면 더욱 안전하고 읽기 쉬운 코드를 작성할 수 있습니다.
 
-함수형 프로그래밍의 세계에 한 걸음 더 들어가보시는 건 어떨까요? 🚀
+어려운 수학 이론 대신 Rust가 제공하는 풍부한 예제와 함께 함수형 프로그래밍의 세계에 한 걸음 더 들어가보시는 건 어떨까요? 🚀
 
