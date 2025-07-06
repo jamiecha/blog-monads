@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown: Rich Preview</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        // Initialize highlight.js
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        });
+
+        // Copy to clipboard function
+        function copyToClipboard(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.backgroundColor = '#4CAF50';
+                button.style.color = 'white';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.backgroundColor = '';
+                    button.style.color = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+    </script>
+    <style>
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            padding: 0 20px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 16px;
+            line-height: 1.25;
+        }
+        
+        h1 { 
+            font-size: 2em; 
+            border-bottom: 1px solid #eaecef; 
+            padding-bottom: 0.3em;
+            margin-top: 0.67em 0;
+        }
+        
+        h2 { 
+            font-size: 1.5em; 
+            border-bottom: 1px solid #eaecef; 
+            padding-bottom: 0.3em;
+            margin-top: 1.5em;
+        }
+        
+        h3 { 
+            font-size: 1.25em; 
+            margin-top: 1.25em;
+        }
+        
+        h4 { 
+            font-size: 1em; 
+            margin-top: 1em;
+        }
+        
+        a { 
+            color: #0366d6; 
+            text-decoration: none; 
+        }
+        
+        a:hover { 
+            text-decoration: underline; 
+        }
+        
+        strong { 
+            font-weight: 600; 
+        }
+        
+        pre {
+            background-color: #f6f8fa;
+            overflow: auto;
+            margin: 0;
+        }
+        
+        code {
+            font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+            background-color: rgba(27, 31, 35, 0.05);
+            border-radius: 3px;
+            padding: 0.2em 0.4em;
+            font-size: 85%;
+        }
+        
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+
+        .code-block {
+            position: relative;
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            margin: 1em 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 10px;
+            background-color: #e7eeef;
+            border-bottom: 1px solid #ddd;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+        }
+
+        .language {
+            color: #666;
+            font-size: 0.9em;
+            font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+
+        .copy-button {
+            padding: 4px 8px;
+            font-size: 0.9em;
+            color: #666;
+            background-color: transparent;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-button:hover {
+            background-color: #e9e9e9;
+            border-color: #ccc;
+        }
+        
+        blockquote {
+            margin: 0;
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+        }
+        
+        ul, ol {
+            padding-left: 2em;
+        }
+        
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            width: 100%;
+            overflow: auto;
+            margin-bottom: 16px;
+        }
+        
+        table th {
+            font-weight: 600;
+        }
+        
+        table th, table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        
+        table tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+        }
+        
+        table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        
+        img {
+            max-width: 100%;
+            box-sizing: content-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rust로 배우는 모나드(Monad)의 개념</h1>
+<p>안녕하세요! 오늘은 함수형 프로그래밍의 핵심 개념인 **모나드(Monad)**에 대해 Rust 예제와 함께 자세히 알아보겠습니다. 
+모나드는 처음에는 복잡해 보이지만, 실제로는 우리가 일상에서 자주 사용하는 패턴을 수학적으로 정리한 것입니다. 차근차근 따라오시면 모나드가 무엇이며 어떤 경우에 사용하게 되는지 쉽게 이해하게 되실 겁니다!</p>
+<h2>🎯 이 글에서 배울 것들</h2>
+<ul>
+<li><strong>모노이드(Monoid)</strong>: 결합 가능한 연산의 기초</li>
+<li><strong>펑터(Functor)</strong>: 값을 변환하는 방법</li>
+<li><strong>엔도펑터(Endofunctor)</strong>: 같은 범주 내에서의 변환</li>
+<li><strong>어플리커티브 펑터(Applicative Functor)</strong>: 함수를 적용하는 방법</li>
+<li><strong>모나드(Monad)</strong>: 순차적 연산을 체이닝하는 방법</li>
+</ul>
+<p>이들이 어떻게 연결되어 있는지, 그리고 실제로 어떤 문제를 해결하는지 함께 살펴보겠습니다.</p>
+<hr>
+<h2>1. 모노이드(Monoid): 결합의 기초</h2>
+<p>모노이드는 <strong>결합법칙을 만족하는 이항 연산</strong>과 <strong>항등원</strong>을 가진 대수적 구조입니다. 수학적 정의는 어렵게 들리실지 모르지만 사실 별것 없습니다. 여러 개를 순서대로 합칠 수 있고, 아무것도 없는 상태(항등원)가 있는 구조라는 뜻입니다.</p>
+<h3>모노이드의 정의</h3>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-keyword">pub</span> <span class="hljs-keyword">trait</span> <span class="hljs-title class_">Monoid</span> {
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">empty</span>() <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span>;           <span class="hljs-comment">// 항등원</span>
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">append</span>(&amp;<span class="hljs-keyword">self</span>, other: &amp;<span class="hljs-keyword">Self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span>;  <span class="hljs-comment">// 결합 연산</span>
+}</code></pre>
+                </div>
+            <h3>실제 예제들</h3>
+<h4>문자열 모노이드</h4>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-keyword">impl</span> <span class="hljs-title class_">Monoid</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">String</span> {
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">empty</span>() <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span> {
+        <span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">new</span>()  <span class="hljs-comment">// 빈 문자열이 항등원</span>
+    }
+    
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">append</span>(&amp;<span class="hljs-keyword">self</span>, other: &amp;<span class="hljs-keyword">Self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span> {
+        <span class="hljs-built_in">format!</span>(<span class="hljs-string">&quot;{}{}&quot;</span>, <span class="hljs-keyword">self</span>, other)  <span class="hljs-comment">// 문자열 연결 (결합 연산)</span>
+    }
+}
+
+<span class="hljs-comment">// 사용 예시</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">hello</span> = <span class="hljs-string">&quot;안녕&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>();
+<span class="hljs-keyword">let</span> <span class="hljs-variable">world</span> = <span class="hljs-string">&quot;하세요&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>();
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;{}&quot;</span>, hello.<span class="hljs-title function_ invoke__">append</span>(&amp;world)); <span class="hljs-comment">// &quot;안녕하세요&quot;</span></code></pre>
+                </div>
+            <h4>숫자 덧셈 모노이드</h4>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-meta">#[derive(Debug, Clone)]</span>
+<span class="hljs-keyword">pub</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">Sum</span>(<span class="hljs-type">i32</span>);  <span class="hljs-comment">// 숫자를 감싸는 래퍼 타입</span>
+
+<span class="hljs-keyword">impl</span> <span class="hljs-title class_">Monoid</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">Sum</span> {
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">empty</span>() <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span> {
+        <span class="hljs-title function_ invoke__">Sum</span>(<span class="hljs-number">0</span>)  <span class="hljs-comment">// 0이 항등원 (덧셈의 항등원)</span>
+    }
+    
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">append</span>(&amp;<span class="hljs-keyword">self</span>, other: &amp;<span class="hljs-keyword">Self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span> {
+        <span class="hljs-title function_ invoke__">Sum</span>(<span class="hljs-keyword">self</span>.<span class="hljs-number">0</span> + other.<span class="hljs-number">0</span>)  <span class="hljs-comment">// 덧셈 연산 (결합 연산)</span>
+    }
+}
+
+<span class="hljs-comment">// 사용 예시</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">a</span> = <span class="hljs-title function_ invoke__">Sum</span>(<span class="hljs-number">5</span>);
+<span class="hljs-keyword">let</span> <span class="hljs-variable">b</span> = <span class="hljs-title function_ invoke__">Sum</span>(<span class="hljs-number">3</span>);
+<span class="hljs-keyword">let</span> <span class="hljs-variable">c</span> = <span class="hljs-title function_ invoke__">Sum</span>(<span class="hljs-number">2</span>);
+
+<span class="hljs-comment">// 결합법칙 확인: (a + b) + c = a + (b + c)</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">left</span> = a.<span class="hljs-title function_ invoke__">append</span>(&amp;b).<span class="hljs-title function_ invoke__">append</span>(&amp;c);      <span class="hljs-comment">// (5 + 3) + 2 = 10</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">right</span> = a.<span class="hljs-title function_ invoke__">append</span>(&amp;b.<span class="hljs-title function_ invoke__">append</span>(&amp;c));     <span class="hljs-comment">// 5 + (3 + 2) = 10</span>
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;왼쪽: {:?}, 오른쪽: {:?}&quot;</span>, left, right); <span class="hljs-comment">// Sum(10), Sum(10)</span></code></pre>
+                </div>
+            <h3>모노이드의 특징</h3>
+<ol>
+<li><strong>결합법칙</strong>: <code>(a + b) + c = a + (b + c)</code></li>
+<li><strong>항등원</strong>: <code>empty + a = a + empty = a</code></li>
+</ol>
+<p>이런 구조는 리스트 합치기, 문자열 연결, 숫자 덧셈 등에서 자연스럽게 나타납니다.</p>
+<h4>모노이드 사용 예시</h4>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-comment">// 여러 문자열을 결합 (결합 연산의 활용)</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">words</span> = <span class="hljs-built_in">vec!</span>[<span class="hljs-string">&quot;안녕&quot;</span>, <span class="hljs-string">&quot;하세요&quot;</span>, <span class="hljs-string">&quot;반갑습니다&quot;</span>];
+<span class="hljs-keyword">let</span> <span class="hljs-variable">result</span> = words.<span class="hljs-title function_ invoke__">iter</span>().<span class="hljs-title function_ invoke__">fold</span>(<span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">empty</span>(), |acc, word| acc.<span class="hljs-title function_ invoke__">append</span>(&amp;word.<span class="hljs-title function_ invoke__">to_string</span>()));
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;{}&quot;</span>, result); <span class="hljs-comment">// &quot;안녕하세요반갑습니다&quot;</span></code></pre>
+                </div>
+            <hr>
+<h2>2. 펑터(Functor): 값을 변환하는 방법</h2>
+<p>펑터는 <strong>값을 담고 있는 컨테이너</strong>에서 <strong>함수를 적용</strong>할 수 있게 해주는 구조입니다. 쉽게 말해서, 박스 안의 값을 변환할 수 있게 해주는 도구라고 생각하시면 됩니다.</p>
+<h3>펑터의 정의</h3>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-keyword">pub</span> <span class="hljs-keyword">trait</span> <span class="hljs-title class_">Functor</span>&lt;A&gt; {
+    <span class="hljs-keyword">type</span> <span class="hljs-title class_">Wrapped</span>&lt;B&gt;;
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">fmap</span>&lt;B, F&gt;(<span class="hljs-keyword">self</span>, f: F) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span>::Wrapped&lt;B&gt;
+    <span class="hljs-keyword">where</span>
+        F: <span class="hljs-title function_ invoke__">FnOnce</span>(A) <span class="hljs-punctuation">-&gt;</span> B;
+}</code></pre>
+                </div>
+            <h3>실제 예제들</h3>
+<h4>Option 펑터</h4>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-keyword">impl</span>&lt;A&gt; Functor&lt;A&gt; <span class="hljs-keyword">for</span> <span class="hljs-title class_">Option</span>&lt;A&gt; {
+    <span class="hljs-keyword">type</span> <span class="hljs-title class_">Wrapped</span>&lt;B&gt; = <span class="hljs-type">Option</span>&lt;B&gt;;
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">fmap</span>&lt;B, F&gt;(<span class="hljs-keyword">self</span>, f: F) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Option</span>&lt;B&gt;
+    <span class="hljs-keyword">where</span>
+        F: <span class="hljs-title function_ invoke__">FnOnce</span>(A) <span class="hljs-punctuation">-&gt;</span> B,
+    {
+        <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span> {
+            <span class="hljs-title function_ invoke__">Some</span>(value) =&gt; <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-title function_ invoke__">f</span>(value)),  <span class="hljs-comment">// 값이 있으면 함수 적용</span>
+            <span class="hljs-literal">None</span> =&gt; <span class="hljs-literal">None</span>,                   <span class="hljs-comment">// 값이 없으면 그대로 None</span>
+        }
+    }
+}
+
+<span class="hljs-comment">// 사용 예시</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">some_value</span> = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-number">5</span>);
+<span class="hljs-keyword">let</span> <span class="hljs-variable">none_value</span>: <span class="hljs-type">Option</span>&lt;<span class="hljs-type">i32</span>&gt; = <span class="hljs-literal">None</span>;
+
+<span class="hljs-keyword">let</span> <span class="hljs-variable">doubled_some</span> = Functor::<span class="hljs-title function_ invoke__">fmap</span>(some_value, |x| x * <span class="hljs-number">2</span>);  <span class="hljs-comment">// Some(5) -&gt; Some(10)</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">doubled_none</span> = Functor::<span class="hljs-title function_ invoke__">fmap</span>(none_value, |x| x * <span class="hljs-number">2</span>);  <span class="hljs-comment">// None -&gt; None</span>
+
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;Some(5) * 2 = {:?}&quot;</span>, doubled_some); <span class="hljs-comment">// Some(10)</span>
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;None * 2 = {:?}&quot;</span>, doubled_none);    <span class="hljs-comment">// None</span></code></pre>
+                </div>
+            <h4>Result 펑터</h4>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-keyword">impl</span>&lt;A, E&gt; Functor&lt;A&gt; <span class="hljs-keyword">for</span> <span class="hljs-title class_">Result</span>&lt;A, E&gt; {
+    <span class="hljs-keyword">type</span> <span class="hljs-title class_">Wrapped</span>&lt;B&gt; = <span class="hljs-type">Result</span>&lt;B, E&gt;;
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">fmap</span>&lt;B, F&gt;(<span class="hljs-keyword">self</span>, f: F) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;B, E&gt;
+    <span class="hljs-keyword">where</span>
+        F: <span class="hljs-title function_ invoke__">FnOnce</span>(A) <span class="hljs-punctuation">-&gt;</span> B,
+    {
+        <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span> {
+            <span class="hljs-title function_ invoke__">Ok</span>(value) =&gt; <span class="hljs-title function_ invoke__">Ok</span>(<span class="hljs-title function_ invoke__">f</span>(value)),  <span class="hljs-comment">// 성공하면 함수 적용</span>
+            <span class="hljs-title function_ invoke__">Err</span>(e) =&gt; <span class="hljs-title function_ invoke__">Err</span>(e),           <span class="hljs-comment">// 실패하면 에러 그대로 (구조 보존)</span>
+        }
+    }
+}
+
+<span class="hljs-comment">// 사용 예시</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">success</span>: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">i32</span>, <span class="hljs-type">String</span>&gt; = <span class="hljs-title function_ invoke__">Ok</span>(<span class="hljs-number">10</span>);
+<span class="hljs-keyword">let</span> <span class="hljs-variable">failure</span>: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">i32</span>, <span class="hljs-type">String</span>&gt; = <span class="hljs-title function_ invoke__">Err</span>(<span class="hljs-string">&quot;에러 발생&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>());
+
+<span class="hljs-keyword">let</span> <span class="hljs-variable">success_doubled</span> = Functor::<span class="hljs-title function_ invoke__">fmap</span>(success, |x| x * <span class="hljs-number">2</span>);   <span class="hljs-comment">// Ok(10) -&gt; Ok(20)</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">failure_doubled</span> = Functor::<span class="hljs-title function_ invoke__">fmap</span>(failure, |x| x * <span class="hljs-number">2</span>);   <span class="hljs-comment">// Err(...) -&gt; Err(...)</span>
+
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;성공 케이스: {:?}&quot;</span>, success_doubled); <span class="hljs-comment">// Ok(20)</span>
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;실패 케이스: {:?}&quot;</span>, failure_doubled); <span class="hljs-comment">// Err(&quot;에러 발생&quot;)</span></code></pre>
+                </div>
+            <h3>펑터의 특징</h3>
+<ol>
+<li><strong>값 보존</strong>: <code>fmap</code>은 컨테이너의 구조를 유지합니다</li>
+<li><strong>함수 적용</strong>: 박스 안의 값에만 함수를 적용합니다</li>
+<li><strong>에러 처리</strong>: <code>None</code>이나 <code>Err</code>는 그대로 유지됩니다</li>
+</ol>
+<h4>펑터 사용 예시</h4>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-comment">// Option 값 변환 (값 변환의 활용)</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">user_id</span> = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-number">123</span>);
+<span class="hljs-keyword">let</span> <span class="hljs-variable">user_name</span> = user_id.<span class="hljs-title function_ invoke__">fmap</span>(|id| <span class="hljs-built_in">format!</span>(<span class="hljs-string">&quot;user_{}&quot;</span>, id));  <span class="hljs-comment">// Some(123) -&gt; Some(&quot;user_123&quot;)</span>
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;{:?}&quot;</span>, user_name); <span class="hljs-comment">// Some(&quot;user_123&quot;)</span></code></pre>
+                </div>
+            <hr>
+<h2>3. 엔도펑터(Endofunctor): 같은 범주 내에서의 변환</h2>
+<p>&quot;Endo&quot;는 그리스어로 &quot;내부의&quot;, &quot;같은 곳의&quot;를 의미합니다. 의학에서 내시경(endoscope)이 몸 내부를 살펴보는 것처럼, 엔도펑터에서 &quot;endo&quot;는 <strong>같은 범주 내에서</strong> 변환이 일어난다는 것을 나타냅니다. 쉽게 말해서, <code>Option&lt;i32&gt;</code>를 <code>Option&lt;String&gt;</code>으로 변환하는 것처럼, 같은 타입의 컨테이너 안에서만 값의 타입이 바뀌는 경우를 말합니다.</p>
+<h3>Endo vs Non-Endo 비교</h3>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-comment">// ✅ 엔도펑터 (Endofunctor): 같은 범주 내에서 변환</span>
+<span class="hljs-comment">// Option&lt;i32&gt; -&gt; Option&lt;String&gt; (Option 범주 내에서)</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">opt_num</span>: <span class="hljs-type">Option</span>&lt;<span class="hljs-type">i32</span>&gt; = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-number">42</span>);
+<span class="hljs-keyword">let</span> <span class="hljs-variable">opt_str</span>: <span class="hljs-type">Option</span>&lt;<span class="hljs-type">String</span>&gt; = opt_num.<span class="hljs-title function_ invoke__">map</span>(|x| x.<span class="hljs-title function_ invoke__">to_string</span>());  <span class="hljs-comment">// F&lt;A&gt; -&gt; F&lt;B&gt; (F=Option)</span>
+
+<span class="hljs-comment">// Vec&lt;i32&gt; -&gt; Vec&lt;String&gt; (Vec 범주 내에서)</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">vec_num</span> = <span class="hljs-built_in">vec!</span>[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>];
+<span class="hljs-keyword">let</span> <span class="hljs-variable">vec_str</span>: <span class="hljs-type">Vec</span>&lt;<span class="hljs-type">String</span>&gt; = vec_num.<span class="hljs-title function_ invoke__">into_iter</span>().<span class="hljs-title function_ invoke__">map</span>(|x| x.<span class="hljs-title function_ invoke__">to_string</span>()).<span class="hljs-title function_ invoke__">collect</span>();  <span class="hljs-comment">// F&lt;A&gt; -&gt; F&lt;B&gt; (F=Vec)</span>
+
+<span class="hljs-comment">// Result&lt;i32, E&gt; -&gt; Result&lt;String, E&gt; (Result 범주 내에서)</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">result_num</span>: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">i32</span>, &amp;<span class="hljs-type">str</span>&gt; = <span class="hljs-title function_ invoke__">Ok</span>(<span class="hljs-number">100</span>);
+<span class="hljs-keyword">let</span> <span class="hljs-variable">result_str</span>: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">String</span>, &amp;<span class="hljs-type">str</span>&gt; = result_num.<span class="hljs-title function_ invoke__">map</span>(|x| <span class="hljs-built_in">format!</span>(<span class="hljs-string">&quot;값: {}&quot;</span>, x));  <span class="hljs-comment">// F&lt;A&gt; -&gt; F&lt;B&gt; (F=Result)</span>
+
+<span class="hljs-comment">// ❌ Non-Endofunctor: 다른 범주로 변환</span>
+<span class="hljs-comment">// Option&lt;i32&gt; -&gt; Vec&lt;String&gt; (다른 컨테이너 타입으로)</span>
+<span class="hljs-comment">// let opt_to_vec: Vec&lt;String&gt; = opt_num.map(|x| x.to_string()); // 컴파일 에러!</span>
+
+<span class="hljs-comment">// Vec&lt;i32&gt; -&gt; Option&lt;String&gt; (다른 컨테이너 타입으로)</span>
+<span class="hljs-comment">// let vec_to_opt: Option&lt;String&gt; = vec_num.map(|x| x.to_string()); // 컴파일 에러!</span>
+
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;Option: {:?}&quot;</span>, opt_str);   <span class="hljs-comment">// Some(&quot;42&quot;)</span>
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;Vec: {:?}&quot;</span>, vec_str);      <span class="hljs-comment">// [&quot;1&quot;, &quot;2&quot;, &quot;3&quot;]</span>
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;Result: {:?}&quot;</span>, result_str); <span class="hljs-comment">// Ok(&quot;값: 100&quot;)</span></code></pre>
+                </div>
+            <h3>엔도펑터의 특징</h3>
+<ul>
+<li><strong>범주 내 변환</strong>: <code>F&lt;A&gt;</code> → <code>F&lt;B&gt;</code> (F는 같은 타입 생성자)</li>
+<li><strong>구조 보존</strong>: 컨테이너의 구조는 그대로 유지</li>
+<li><strong>모나드의 기초</strong>: 모나드는 엔도펑터의 특별한 경우입니다</li>
+</ul>
+<hr>
+<h2>4. 어플리커티브 펑터(Applicative Functor): 함수를 적용하는 방법</h2>
+<p>어플리커티브 펑터는 <strong>함수도 컨테이너 안에 담아서</strong> 적용할 수 있게 해주는 구조입니다. 펑터가 <code>A → B</code> 함수를 적용한다면, 어플리커티브 펑터는 <code>F&lt;A → B&gt;</code> 함수를 적용할 수 있습니다.</p>
+<h3>어플리커티브 펑터의 정의</h3>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-keyword">pub</span> <span class="hljs-keyword">trait</span> <span class="hljs-title class_">ApplicativeFunctor</span>&lt;A&gt;: Functor&lt;A&gt; {
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">pure</span>(value: A) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span>;  <span class="hljs-comment">// 값을 컨테이너에 담기</span>
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">apply</span>&lt;B, F&gt;(<span class="hljs-keyword">self</span>, f: <span class="hljs-keyword">Self</span>::Wrapped&lt;F&gt;) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span>::Wrapped&lt;B&gt; <span class="hljs-comment">// 컨테이너에 담긴 함수를 컨테이너에 담긴 값에 적용</span>
+    <span class="hljs-keyword">where</span>
+        F: <span class="hljs-title function_ invoke__">FnOnce</span>(A) <span class="hljs-punctuation">-&gt;</span> B;
+}</code></pre>
+                </div>
+            <h3>실제 예제들</h3>
+<h4>Option 어플리커티브 펑터</h4>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-keyword">impl</span>&lt;A&gt; ApplicativeFunctor&lt;A&gt; <span class="hljs-keyword">for</span> <span class="hljs-title class_">Option</span>&lt;A&gt; {
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">pure</span>(value: A) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span> {
+        <span class="hljs-title function_ invoke__">Some</span>(value)  <span class="hljs-comment">// 값을 Option 컨테이너에 담기</span>
+    }
+    
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">apply</span>&lt;B, F&gt;(<span class="hljs-keyword">self</span>, f: <span class="hljs-type">Option</span>&lt;F&gt;) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Option</span>&lt;B&gt;
+    <span class="hljs-keyword">where</span>
+        F: <span class="hljs-title function_ invoke__">FnOnce</span>(A) <span class="hljs-punctuation">-&gt;</span> B,
+    {
+        <span class="hljs-keyword">match</span> (<span class="hljs-keyword">self</span>, f) {
+            (<span class="hljs-title function_ invoke__">Some</span>(value), <span class="hljs-title function_ invoke__">Some</span>(func)) =&gt; <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-title function_ invoke__">func</span>(value)),  <span class="hljs-comment">// 둘 다 Some이면 함수 적용</span>
+            _ =&gt; <span class="hljs-literal">None</span>,  <span class="hljs-comment">// 둘 중 하나라도 None이면 None (에러 전파)</span>
+        }
+    }
+}</code></pre>
+                </div>
+            <h4>간단한 사용 예제</h4>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-comment">// Option 어플리커티브 펑터</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">value</span> = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-number">5</span>);                    <span class="hljs-comment">// F&lt;A&gt; = Option&lt;i32&gt;</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">func</span> = <span class="hljs-title function_ invoke__">Some</span>(|x: <span class="hljs-type">i32</span>| x * <span class="hljs-number">2</span>);        <span class="hljs-comment">// F&lt;A-&gt;B&gt; = Option&lt;Fn(i32)-&gt;i32&gt;</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">result</span> = value.<span class="hljs-title function_ invoke__">apply</span>(func);         <span class="hljs-comment">// F&lt;B&gt; = Option&lt;i32&gt;</span>
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;어플리커티브 펑터 결과: {:?}&quot;</span>, result); <span class="hljs-comment">// Some(10)</span></code></pre>
+                </div>
+            <h4>어플리커티브 펑터 사용 예시</h4>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-comment">// 여러 Option 값 조합 (병렬적 조합의 활용)</span>
+<span class="hljs-meta">#[derive(Debug)]</span>
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">Person</span> {
+    name: <span class="hljs-type">String</span>,
+    age: <span class="hljs-type">u32</span>,
+    email: <span class="hljs-type">String</span>,
+}
+
+<span class="hljs-keyword">let</span> <span class="hljs-variable">name</span> = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-string">&quot;김철수&quot;</span>);
+<span class="hljs-keyword">let</span> <span class="hljs-variable">age</span> = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-number">25</span>);
+<span class="hljs-keyword">let</span> <span class="hljs-variable">email</span> = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-string">&quot;kim@example.com&quot;</span>);
+
+<span class="hljs-comment">// 모든 값이 있을 때만 Person 생성 (병렬적 검증)</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">person</span> = <span class="hljs-keyword">match</span> (name, age, email) {
+    (<span class="hljs-title function_ invoke__">Some</span>(n), <span class="hljs-title function_ invoke__">Some</span>(a), <span class="hljs-title function_ invoke__">Some</span>(e)) =&gt; <span class="hljs-title function_ invoke__">Some</span>(Person { 
+        name: n.<span class="hljs-title function_ invoke__">to_string</span>(), 
+        age: a, 
+        email: e.<span class="hljs-title function_ invoke__">to_string</span>() 
+    }),
+    _ =&gt; <span class="hljs-literal">None</span>,  <span class="hljs-comment">// 하나라도 None이면 전체 실패</span>
+};</code></pre>
+                </div>
+            <h3>어플리커티브 펑터의 특징</h3>
+<ol>
+<li><strong>함수 적용</strong>: <code>F&lt;A&gt;</code>와 <code>F&lt;A→B&gt;</code>를 조합해서 <code>F&lt;B&gt;</code> 만들기</li>
+<li><strong>병렬 처리</strong>: 여러 값을 동시에 조합 가능</li>
+<li><strong>에러 전파</strong>: 하나라도 실패하면 전체 실패</li>
+</ol>
+<p><strong>참고</strong>: Rust에서는 주로 <code>map</code>과 <code>and_then</code>을 사용하므로, 어플리커티브 펑터는 이론적 배경으로만 이해하시면 됩니다.</p>
+<hr>
+<h2>5. 모나드(Monad): 순차적 연산을 체이닝하는 방법</h2>
+<p>드디어 모나드입니다! 모나드는 <strong>순차적인 연산을 체이닝</strong>할 수 있게 해주는 구조로, 함수형 프로그래밍에서 가장 강력하고 유용한 개념 중 하나입니다. 모나드는 <strong>이전 연산의 결과가 다음 연산의 입력</strong>이 되는 경우에 매우 유용하며, 복잡한 연산들을 깔끔하고 안전하게 조합할 수 있게 해줍니다. 특히 에러 처리, 비동기 연산, 상태 관리 등 다양한 상황에서 코드의 가독성과 유지보수성을 크게 향상시킬 수 있습니다.</p>
+<h3>모나드의 정의</h3>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-keyword">pub</span> <span class="hljs-keyword">trait</span> <span class="hljs-title class_">Monad</span>&lt;A&gt;: ApplicativeFunctor&lt;A&gt; {
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">bind</span>&lt;B, F&gt;(<span class="hljs-keyword">self</span>, f: F) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span>::Wrapped&lt;B&gt;
+    <span class="hljs-keyword">where</span>
+        F: <span class="hljs-title function_ invoke__">FnOnce</span>(A) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span>::Wrapped&lt;B&gt;;
+}</code></pre>
+                </div>
+            <h3>실제 예제들</h3>
+<h4>Option 모나드</h4>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-keyword">impl</span>&lt;A&gt; Monad&lt;A&gt; <span class="hljs-keyword">for</span> <span class="hljs-title class_">Option</span>&lt;A&gt; {
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">bind</span>&lt;B, F&gt;(<span class="hljs-keyword">self</span>, f: F) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Option</span>&lt;B&gt;
+    <span class="hljs-keyword">where</span>
+        F: <span class="hljs-title function_ invoke__">FnOnce</span>(A) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Option</span>&lt;B&gt;,  <span class="hljs-comment">// A -&gt; Option&lt;B&gt; 함수 (모나드 반환)</span>
+    {
+        <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span> {
+            <span class="hljs-title function_ invoke__">Some</span>(value) =&gt; <span class="hljs-title function_ invoke__">f</span>(value),  <span class="hljs-comment">// 값이 있으면 함수 적용 (순차적 실행)</span>
+            <span class="hljs-literal">None</span> =&gt; <span class="hljs-literal">None</span>,             <span class="hljs-comment">// 값이 없으면 그대로 None (조건부 실행)</span>
+        }
+    }
+}
+
+<span class="hljs-comment">// 사용 예시 - 체이닝</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">result</span> = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-number">5</span>)
+    .<span class="hljs-title function_ invoke__">bind</span>(|x| <span class="hljs-keyword">if</span> x &gt; <span class="hljs-number">0</span> { <span class="hljs-title function_ invoke__">Some</span>(x * <span class="hljs-number">2</span>) } <span class="hljs-keyword">else</span> { <span class="hljs-literal">None</span> })      <span class="hljs-comment">// 첫 번째 연산</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(|x| <span class="hljs-keyword">if</span> x &lt; <span class="hljs-number">20</span> { <span class="hljs-title function_ invoke__">Some</span>(x + <span class="hljs-number">1</span>) } <span class="hljs-keyword">else</span> { <span class="hljs-literal">None</span> })     <span class="hljs-comment">// 두 번째 연산</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(|x| <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-built_in">format!</span>(<span class="hljs-string">&quot;결과: {}&quot;</span>, x)));               <span class="hljs-comment">// 세 번째 연산</span>
+
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;Option 체이닝: {:?}&quot;</span>, result); <span class="hljs-comment">// Some(&quot;결과: 11&quot;)</span>
+
+<span class="hljs-comment">// 중간에 None이 나오면 전체가 None (에러 전파)</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">result2</span> = <span class="hljs-title function_ invoke__">Some</span>(-<span class="hljs-number">5</span>)
+    .<span class="hljs-title function_ invoke__">bind</span>(|x| <span class="hljs-keyword">if</span> x &gt; <span class="hljs-number">0</span> { <span class="hljs-title function_ invoke__">Some</span>(x * <span class="hljs-number">2</span>) } <span class="hljs-keyword">else</span> { <span class="hljs-literal">None</span> })  <span class="hljs-comment">// 여기서 None</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(|x| <span class="hljs-keyword">if</span> x &lt; <span class="hljs-number">20</span> { <span class="hljs-title function_ invoke__">Some</span>(x + <span class="hljs-number">1</span>) } <span class="hljs-keyword">else</span> { <span class="hljs-literal">None</span> }) <span class="hljs-comment">// 실행되지 않음</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(|x| <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-built_in">format!</span>(<span class="hljs-string">&quot;결과: {}&quot;</span>, x)));           <span class="hljs-comment">// 실행되지 않음</span>
+
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;중단된 체이닝: {:?}&quot;</span>, result2); <span class="hljs-comment">// None</span></code></pre>
+                </div>
+            <h4>Result 모나드</h4>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-keyword">impl</span>&lt;A, E&gt; Monad&lt;A&gt; <span class="hljs-keyword">for</span> <span class="hljs-title class_">Result</span>&lt;A, E&gt; {
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">bind</span>&lt;B, F&gt;(<span class="hljs-keyword">self</span>, f: F) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;B, E&gt;
+    <span class="hljs-keyword">where</span>
+        F: <span class="hljs-title function_ invoke__">FnOnce</span>(A) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;B, E&gt;,  <span class="hljs-comment">// A -&gt; Result&lt;B, E&gt; 함수</span>
+    {
+        <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span> {
+            <span class="hljs-title function_ invoke__">Ok</span>(value) =&gt; <span class="hljs-title function_ invoke__">f</span>(value),  <span class="hljs-comment">// 성공하면 함수 적용</span>
+            <span class="hljs-title function_ invoke__">Err</span>(e) =&gt; <span class="hljs-title function_ invoke__">Err</span>(e),       <span class="hljs-comment">// 실패하면 에러 그대로 (에러 전파)</span>
+        }
+    }
+}
+
+<span class="hljs-comment">// 실용적인 예제</span>
+<span class="hljs-keyword">fn</span> <span class="hljs-title function_">divide</span>(a: <span class="hljs-type">f64</span>, b: <span class="hljs-type">f64</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;<span class="hljs-type">f64</span>, <span class="hljs-type">String</span>&gt; {
+    <span class="hljs-keyword">if</span> b == <span class="hljs-number">0.0</span> {
+        <span class="hljs-title function_ invoke__">Err</span>(<span class="hljs-string">&quot;0으로 나눌 수 없습니다&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>())  <span class="hljs-comment">// 에러 케이스</span>
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-title function_ invoke__">Ok</span>(a / b)  <span class="hljs-comment">// 성공 케이스</span>
+    }
+}
+
+<span class="hljs-keyword">fn</span> <span class="hljs-title function_">sqrt</span>(x: <span class="hljs-type">f64</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;<span class="hljs-type">f64</span>, <span class="hljs-type">String</span>&gt; {
+    <span class="hljs-keyword">if</span> x &lt; <span class="hljs-number">0.0</span> {
+        <span class="hljs-title function_ invoke__">Err</span>(<span class="hljs-string">&quot;음수의 제곱근을 구할 수 없습니다&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>())  <span class="hljs-comment">// 에러 케이스</span>
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-title function_ invoke__">Ok</span>(x.<span class="hljs-title function_ invoke__">sqrt</span>())  <span class="hljs-comment">// 성공 케이스</span>
+    }
+}
+
+<span class="hljs-comment">// 모나드 체이닝으로 복잡한 계산 (순차적 실행)</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">computation</span> = <span class="hljs-title function_ invoke__">Ok</span>(<span class="hljs-number">16.0</span>)
+    .<span class="hljs-title function_ invoke__">bind</span>(|x| <span class="hljs-title function_ invoke__">divide</span>(x, <span class="hljs-number">4.0</span>))  <span class="hljs-comment">// 16 / 4 = 4</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(|x| <span class="hljs-title function_ invoke__">sqrt</span>(x))         <span class="hljs-comment">// sqrt(4) = 2</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(|x| <span class="hljs-title function_ invoke__">Ok</span>(x * <span class="hljs-number">10.0</span>));   <span class="hljs-comment">// 2 * 10 = 20</span>
+
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;계산 결과: {:?}&quot;</span>, computation); <span class="hljs-comment">// Ok(20.0)</span>
+
+<span class="hljs-comment">// 에러가 발생하는 경우 (에러 전파)</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">error_computation</span> = <span class="hljs-title function_ invoke__">Ok</span>(<span class="hljs-number">16.0</span>)
+    .<span class="hljs-title function_ invoke__">bind</span>(|x| <span class="hljs-title function_ invoke__">divide</span>(x, <span class="hljs-number">0.0</span>))  <span class="hljs-comment">// 에러 발생!</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(|x| <span class="hljs-title function_ invoke__">sqrt</span>(x))         <span class="hljs-comment">// 실행되지 않음</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(|x| <span class="hljs-title function_ invoke__">Ok</span>(x * <span class="hljs-number">10.0</span>));   <span class="hljs-comment">// 실행되지 않음</span>
+
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;에러 결과: {:?}&quot;</span>, error_computation);</code></pre>
+                </div>
+            <h3>모나드의 특징</h3>
+<ol>
+<li><strong>순차적 실행</strong>: 이전 연산의 결과가 다음 연산의 입력</li>
+<li><strong>에러 전파</strong>: 중간에 실패하면 전체 체인이 실패</li>
+<li><strong>조건부 실행</strong>: 값이 있을 때만 다음 연산 실행</li>
+</ol>
+<hr>
+<h2>6. 개념들 간의 관계</h2>
+<p>각각의 개념들이 어떻게 연결되어 있는지 간단히 정리해 보겠습니다.</p>
+<h3>계층 구조</h3>
+<ul>
+<li><strong>모나드</strong>는 <strong>어플리커티브 펑터</strong>를 확장합니다</li>
+<li><strong>어플리커티브 펑터</strong>는 <strong>펑터</strong>를 확장합니다</li>
+<li><strong>엔도펑터</strong>는 <strong>펑터</strong>의 특별한 경우입니다</li>
+<li><strong>모노이드</strong>는 별도의 대수적 구조입니다</li>
+</ul>
+<h3>각각이 해결하는 문제</h3>
+<ol>
+<li><strong>모노이드</strong>: 여러 값을 결합하는 방법</li>
+<li><strong>펑터</strong>: 값을 변환하는 방법</li>
+<li><strong>엔도펑터</strong>: 같은 컨테이너 내에서 값 변환</li>
+<li><strong>어플리커티브 펑터</strong>: 함수를 적용하는 방법</li>
+<li><strong>모나드</strong>: 순차적 연산을 체이닝하는 방법</li>
+</ol>
+<hr>
+<h2>7. 모나드의 장점</h2>
+<p>모나드는 코드의 품질과 유지보수성을 크게 향상시키는 여러 장점들을 가지고 있습니다. 복잡한 로직을 단순화하고, 에러 처리를 우아하게 만들며, 코드의 재사용성을 높여줍니다. 아래에서 모나드의 주요 장점들을 자세히 살펴보겠습니다.</p>
+<h3>1. 에러 처리의 단순화</h3>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-comment">// 모나드 없이 (중첩된 match) - 복잡하고 읽기 어려움</span>
+<span class="hljs-keyword">fn</span> <span class="hljs-title function_">process_data</span>(data: <span class="hljs-type">Option</span>&lt;<span class="hljs-type">i32</span>&gt;) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Option</span>&lt;<span class="hljs-type">String</span>&gt; {
+    <span class="hljs-keyword">match</span> data {
+        <span class="hljs-title function_ invoke__">Some</span>(value) =&gt; {
+            <span class="hljs-keyword">match</span> <span class="hljs-title function_ invoke__">validate</span>(value) {
+                <span class="hljs-title function_ invoke__">Some</span>(valid) =&gt; {
+                    <span class="hljs-keyword">match</span> <span class="hljs-title function_ invoke__">transform</span>(valid) {
+                        <span class="hljs-title function_ invoke__">Some</span>(result) =&gt; <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-built_in">format!</span>(<span class="hljs-string">&quot;결과: {}&quot;</span>, result)),
+                        <span class="hljs-literal">None</span> =&gt; <span class="hljs-literal">None</span>,
+                    }
+                }
+                <span class="hljs-literal">None</span> =&gt; <span class="hljs-literal">None</span>,
+            }
+        }
+        <span class="hljs-literal">None</span> =&gt; <span class="hljs-literal">None</span>,
+    }
+}
+
+<span class="hljs-comment">// 모나드 사용 (깔끔한 체이닝) - 간결하고 읽기 쉬움</span>
+<span class="hljs-keyword">fn</span> <span class="hljs-title function_">process_data</span>(data: <span class="hljs-type">Option</span>&lt;<span class="hljs-type">i32</span>&gt;) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Option</span>&lt;<span class="hljs-type">String</span>&gt; {
+    data.<span class="hljs-title function_ invoke__">and_then</span>(validate)           <span class="hljs-comment">// 1단계: 검증</span>
+        .<span class="hljs-title function_ invoke__">and_then</span>(transform)          <span class="hljs-comment">// 2단계: 변환</span>
+        .<span class="hljs-title function_ invoke__">map</span>(|result| <span class="hljs-built_in">format!</span>(<span class="hljs-string">&quot;결과: {}&quot;</span>, result))  <span class="hljs-comment">// 3단계: 포맷팅</span>
+}</code></pre>
+                </div>
+            <h3>2. 가독성 향상</h3>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-comment">// 복잡한 비즈니스 로직도 한눈에 파악 가능</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">result</span> = <span class="hljs-title function_ invoke__">get_user_input</span>()         <span class="hljs-comment">// 1단계: 사용자 입력</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(validate_input)             <span class="hljs-comment">// 2단계: 입력 검증</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(process_data)               <span class="hljs-comment">// 3단계: 데이터 처리</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(save_to_database)           <span class="hljs-comment">// 4단계: DB 저장</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(send_notification);         <span class="hljs-comment">// 5단계: 알림 발송</span></code></pre>
+                </div>
+            <h3>3. 조합 가능성</h3>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-comment">// 작은 함수들을 조합해서 복잡한 로직 구성</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">pipeline</span> = |input| input
+    .<span class="hljs-title function_ invoke__">bind</span>(step1)    <span class="hljs-comment">// 첫 번째 단계</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(step2)    <span class="hljs-comment">// 두 번째 단계</span>
+    .<span class="hljs-title function_ invoke__">bind</span>(step3);   <span class="hljs-comment">// 세 번째 단계</span>
+
+<span class="hljs-keyword">let</span> <span class="hljs-variable">result</span> = <span class="hljs-title function_ invoke__">pipeline</span>(<span class="hljs-title function_ invoke__">Some</span>(initial_value));</code></pre>
+                </div>
+            <hr>
+<h2>8. 실제 Rust에서의 모나드</h2>
+<p>Rust에서 찾아볼 수 있는 모나드의 대표적인 예는 다음과 같습니다. 이들은 Rust의 표준 라이브러리에서 제공되는 기본 타입들로, 실제 코드에서 매우 자주 사용되며 깔끔하고 체계적인 에러 처리와 데이터 변환을 가능하게 합니다.</p>
+<h3>Option 모나드</h3>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-comment">// Some과 None으로 값의 존재 여부 표현</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">result</span> = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-number">5</span>)
+    .<span class="hljs-title function_ invoke__">map</span>(|x| x * <span class="hljs-number">2</span>)                                    <span class="hljs-comment">// 값 변환</span>
+    .<span class="hljs-title function_ invoke__">and_then</span>(|x| <span class="hljs-keyword">if</span> x &gt; <span class="hljs-number">10</span> { <span class="hljs-title function_ invoke__">Some</span>(x) } <span class="hljs-keyword">else</span> { <span class="hljs-literal">None</span> }) <span class="hljs-comment">// 조건부 처리</span>
+    .<span class="hljs-title function_ invoke__">map</span>(|x| <span class="hljs-built_in">format!</span>(<span class="hljs-string">&quot;결과: {}&quot;</span>, x));                  <span class="hljs-comment">// 포맷팅</span></code></pre>
+                </div>
+            <h3>Result 모나드</h3>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-comment">// Ok와 Err로 성공/실패 표현</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">result</span>: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">i32</span>, <span class="hljs-type">String</span>&gt; = <span class="hljs-title function_ invoke__">Ok</span>(<span class="hljs-number">10</span>)
+    .<span class="hljs-title function_ invoke__">and_then</span>(|x| <span class="hljs-keyword">if</span> x &gt; <span class="hljs-number">0</span> { <span class="hljs-title function_ invoke__">Ok</span>(x * <span class="hljs-number">2</span>) } <span class="hljs-keyword">else</span> { <span class="hljs-title function_ invoke__">Err</span>(<span class="hljs-string">&quot;음수입니다&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>()) })  <span class="hljs-comment">// 조건부 성공/실패</span>
+    .<span class="hljs-title function_ invoke__">map</span>(|x| x + <span class="hljs-number">1</span>);  <span class="hljs-comment">// 성공 시에만 변환</span></code></pre>
+                </div>
+            <h3>Iterator 모나드</h3>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="language">rust</span>
+                        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-rust"><span class="hljs-comment">// 컬렉션의 순차적 처리</span>
+<span class="hljs-keyword">let</span> <span class="hljs-variable">result</span>: <span class="hljs-type">Vec</span>&lt;<span class="hljs-type">i32</span>&gt; = <span class="hljs-built_in">vec!</span>[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>]
+    .<span class="hljs-title function_ invoke__">into_iter</span>()
+    .<span class="hljs-title function_ invoke__">filter</span>(|&amp;x| x % <span class="hljs-number">2</span> == <span class="hljs-number">0</span>)  <span class="hljs-comment">// 짝수만 필터링</span>
+    .<span class="hljs-title function_ invoke__">map</span>(|x| x * <span class="hljs-number">2</span>)           <span class="hljs-comment">// 2배로 변환</span>
+    .<span class="hljs-title function_ invoke__">collect</span>();               <span class="hljs-comment">// 결과 수집</span></code></pre>
+                </div>
+            <hr>
+<h2>9. 마무리</h2>
+<p>지금까지 모나드와 그 기반이 되는 개념들을 Rust 언어 예제를 통해 살펴보셨습니다. 함수형 언어로서의 장점이 느껴지시나요?</p>
+<h3>핵심 정리</h3>
+<ol>
+<li><strong>모노이드</strong>: 결합 가능한 연산의 기초</li>
+<li><strong>펑터</strong>: 값을 변환하는 방법</li>
+<li><strong>엔도펑터</strong>: 같은 범주 내에서의 변환</li>
+<li><strong>어플리커티브 펑터</strong>: 함수를 적용하는 방법</li>
+<li><strong>모나드</strong>: 순차적 연산을 체이닝하는 방법</li>
+</ol>
+<h3>실무에서의 활용</h3>
+<ul>
+<li><strong>에러 처리</strong>: Result 모나드로 깔끔한 에러 처리</li>
+<li><strong>널 안전성</strong>: Option 모나드로 null pointer error 예방</li>
+<li><strong>비동기 처리</strong>: Future 모나드로 복잡한 비동기 로직 단순화</li>
+<li><strong>파싱</strong>: Parser 모나드로 복잡한 파싱 로직 구성</li>
+</ul>
+<p>모나드는 처음에는 어려워 보이지만, 실제로는 우리가 일상에서 자주 사용하는 패턴을 수학적으로 정리한 것입니다. Rust의 강력한 타입 시스템과 함께 사용하면 더욱 안전하고 읽기 쉬운 코드를 작성할 수 있습니다.</p>
+<p>어려운 수학 이론 대신 Rust가 제공하는 풍부한 예제와 함께 함수형 프로그래밍의 세계에 한 걸음 더 들어가보시는 건 어떨까요? 🚀</p>
+
+</body>
+</html>
