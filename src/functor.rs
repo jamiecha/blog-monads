@@ -34,46 +34,33 @@ impl<A, E> Functor<A> for Result<A, E> {
     }
 }
 
-// Vec는 별도의 FunctorMut 트레이트를 사용해야 합니다
-// (Iterator::map이 FnMut을 요구하기 때문)
-pub trait FunctorMut<A> {
-    type Wrapped<B>;
-    fn fmap<B, F>(self, f: F) -> Self::Wrapped<B>
-    where
-        F: FnMut(A) -> B;
-}
-
-impl<A> FunctorMut<A> for Vec<A> {
-    type Wrapped<B> = Vec<B>;
+pub fn functor_examples() {
+    println!("=== 펑터(Functor) 예제 ===");
     
-    fn fmap<B, F>(self, f: F) -> Vec<B>
-    where
-        F: FnMut(A) -> B,
-    {
-        self.into_iter().map(f).collect()
-    }
-}
-
-pub fn main_functor() {
-    // Option 펑터
+    println!("\n1. Option 펑터:");
     let some_value = Some(5);
     let none_value: Option<i32> = None;
     
     let doubled_some = Functor::fmap(some_value, |x| x * 2);
     let doubled_none = Functor::fmap(none_value, |x| x * 2);
     
-    println!("Some(5) * 2 = {:?}", doubled_some); // Some(10)
-    println!("None * 2 = {:?}", doubled_none);     // None
+    println!("  Some(5) * 2 = {:?}", doubled_some);
+    println!("  None * 2 = {:?}", doubled_none);
     
-    // Result 펑터
+    println!("\n2. Result 펑터:");
     let success: Result<i32, String> = Ok(10);
     let failure: Result<i32, String> = Err("에러 발생".to_string());
     
     let success_doubled = Functor::fmap(success, |x| x * 2);
     let failure_doubled = Functor::fmap(failure, |x| x * 2);
     
-    println!("성공 케이스: {:?}", success_doubled); // Ok(20)
-    println!("실패 케이스: {:?}", failure_doubled); // Err("에러 발생")
+    println!("  성공 케이스: {:?}", success_doubled);
+    println!("  실패 케이스: {:?}", failure_doubled);
+    
+    println!("\n3. 실제 사용 예제:");
+    let user_id = Some(123);
+    let user_name = user_id.fmap(|id| format!("user_{}", id));
+    println!("  사용자 ID 변환: {:?}", user_name);
 }
 
  

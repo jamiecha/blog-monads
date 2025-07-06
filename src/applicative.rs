@@ -1,15 +1,17 @@
 use crate::functor::Functor;
 
-// 어플리케이티브 펑터 트레이트
-pub trait Applicative<A>: Functor<A> {
+// 어플리커티브 펑터 트레이트
+pub trait ApplicativeFunctor<A>: Functor<A> {
+    #[allow(dead_code)]
     fn pure(value: A) -> Self;
+    #[allow(dead_code)]
     fn apply<B, F>(self, f: Self::Wrapped<F>) -> Self::Wrapped<B>
     where
         F: FnOnce(A) -> B;
 }
 
-// Option에 대한 어플리케이티브 구현
-impl<A> Applicative<A> for Option<A> {
+// Option에 대한 어플리커티브 구현
+impl<A> ApplicativeFunctor<A> for Option<A> {
     fn pure(value: A) -> Self {
         Some(value)
     }
@@ -25,8 +27,8 @@ impl<A> Applicative<A> for Option<A> {
     }
 }
 
-// Result에 대한 어플리케이티브 구현
-impl<A, E> Applicative<A> for Result<A, E> {
+// Result에 대한 어플리커티브 구현
+impl<A, E> ApplicativeFunctor<A> for Result<A, E> {
     fn pure(value: A) -> Self {
         Ok(value)
     }
@@ -43,62 +45,48 @@ impl<A, E> Applicative<A> for Result<A, E> {
     }
 }
 
-// 실용적인 헬퍼 함수들
-pub fn lift2<A, B, C, F>(f: F) -> impl Fn(Option<A>, Option<B>) -> Option<C>
-where
-    F: Fn(A, B) -> C,
-{
-    move |opt_a, opt_b| match (opt_a, opt_b) {
-        (Some(a), Some(b)) => Some(f(a, b)),
-        _ => None,
-    }
+#[derive(Debug)]
+#[allow(dead_code)]
+struct Person {
+    name: String,
+    age: u32,
+    email: String,
 }
 
-pub fn main_applicative() {
-    // 기본 사용법
+pub fn applicative_functor_examples() {
+    println!("=== 어플리커티브 펑터(Applicative Functor) 예제 ===");
+    
+    println!("\n1. 기본 사용법:");
     let value = Some(5);
     let func = Some(|x: i32| x * 2);
     let result = value.apply(func);
-    println!("어플리케이티브 결과: {:?}", result); // Some(10)
+    println!("  Some(5)에 2배 함수 적용: {:?}", result);
     
-    // 두 값을 조합하기
-    let add = lift2(|x: i32, y: i32| x + y);
-    let a = Some(3);
-    let b = Some(7);
-    let c = None;
-    
-    println!("3 + 7 = {:?}", add(a, b)); // Some(10)
-    println!("3 + None = {:?}", add(a, c)); // None
-    
-    // 여러 값 조합 예제
-    #[derive(Debug)]
-    struct Person {
-        name: String,
-        age: u32,
-        email: String,
-    }
-    
-    fn make_person(name: String, age: u32, email: String) -> Person {
-        Person { name, age, email }
-    }
-    
-    let name = Some("김철수".to_string());
+    println!("\n2. 여러 값 조합 예제:");
+    let name = Some("김철수");
     let age = Some(25);
-    let email = Some("kim@example.com".to_string());
-    let invalid_age: Option<u32> = None;
+    let email = Some("kim@example.com");
     
-    // 모든 값이 있을 때
-    let person1 = match (name.clone(), age, email.clone()) {
-        (Some(n), Some(a), Some(e)) => Some(make_person(n, a, e)),
+    // 모든 값이 있을 때만 Person 생성
+    let person = match (name, age, email) {
+        (Some(n), Some(a), Some(e)) => Some(Person { 
+            name: n.to_string(), 
+            age: a, 
+            email: e.to_string() 
+        }),
         _ => None,
     };
+    println!("  완전한 사람: {:?}", person);
     
-    // 하나라도 없으면 None
-    let person2 = match (name, invalid_age, email) {
-        (Some(n), Some(a), Some(e)) => Some(make_person(n, a, e)),
-        _ => None,
-    };
+    println!("\n3. Result 어플리커티브 예제:");
+    let success_value: Result<i32, String> = Ok(10);
+    let success_func: Result<Box<dyn FnOnce(i32) -> i32>, String> = Ok(Box::new(|x| x * 3));
+    let result = success_value.apply(success_func);
+    println!("  Result 어플리커티브: {:?}", result);
     
-    println!("완전한 사람: {:?}", person1);
-    println!("불완전한 사람: {:?}", person2);
+    println!("\n4. 어플리커티브 펑터의 특징:");
+    println!("  - 함수도 컨테이너 안에 담아서 적용");
+    println!("  - F<A>와 F<A→B>를 조합해서 F<B> 생성");
+    println!("  - 병렬적으로 여러 값을 조합 가능");
+    println!("  - 하나라도 실패하면 전체 실패");
 } 

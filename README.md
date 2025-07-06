@@ -18,7 +18,7 @@
 - **위치**: `src/endofunctor.rs`
 - **예제**: 같은 범주 내에서의 변환 예제들
 
-### 4. 어플리케이티브 펑터 (Applicative Functor)
+### 4. 어플리커티브 펑터 (Applicative Functor)
 - **위치**: `src/applicative.rs`
 - **구현**: `Option<T>`, `Result<T, E>`
 - **특징**: `pure`와 `apply` 연산으로 여러 값을 조합
@@ -55,7 +55,7 @@ Option: Some("42")
 Vec: ["1", "2", "3"]
 Result: Ok("값: 100")
 --------------------------------
-어플리케이티브 결과: Some(10)
+어플리커티브 펑터 결과: Some(10)
 3 + 7 = Some(10)
 3 + None = None
 완전한 사람: Some(Person { name: "김철수", age: 25, email: "kim@example.com" })
@@ -76,7 +76,7 @@ src/
 ├── monoid.rs        # 모노이드 관련
 ├── functor.rs       # 펑터 관련
 ├── endofunctor.rs   # 엔도펑터 예제
-├── applicative.rs   # 어플리케이티브 펑터 관련
+├── applicative.rs   # 어플리커티브 펑터 관련
 └── monad.rs         # 모나드 관련
 ```
 

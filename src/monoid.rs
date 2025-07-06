@@ -42,13 +42,16 @@ impl<T: Clone> Monoid for Vec<T> {
     }
 }
 
-pub fn main_monoid() {
-    // 문자열 모노이드
+pub fn monoid_examples() {
+    println!("=== 모노이드(Monoid) 예제 ===");
+    
+    println!("\n1. 문자열 모노이드:");
     let hello = "안녕".to_string();
     let world = "하세요".to_string();
-    println!("{}", hello.append(&world)); // "안녕하세요"
+    let result = hello.append(&world);
+    println!("  '안녕' + '하세요' = '{}'", result);
     
-    // 숫자 모노이드
+    println!("\n2. 숫자 덧셈 모노이드:");
     let a = Sum(5);
     let b = Sum(3);
     let c = Sum(2);
@@ -56,10 +59,19 @@ pub fn main_monoid() {
     // 결합법칙 확인: (a + b) + c = a + (b + c)
     let left = a.append(&b).append(&c);
     let right = a.append(&b.append(&c));
-    println!("왼쪽: {:?}, 오른쪽: {:?}", left, right); // Sum(10), Sum(10)
+    println!("결합법칙 확인:");
+    println!("  (a + b) + c = {:?}", left);
+    println!("  a + (b + c) = {:?}", right);
+    println!("  결과: {}", if left.0 == right.0 { "일치" } else { "불일치" });
     
     // 항등원 확인
     let identity = Sum::empty();
-    println!("a + 0 = {:?}", a.append(&identity)); // Sum(5)
-    println!("0 + a = {:?}", identity.append(&a)); // Sum(5)
+    println!("\n항등원 확인:");
+    println!("  a + 0 = {:?}", a.append(&identity));
+    println!("  0 + a = {:?}", identity.append(&a));
+    
+    println!("\n3. 여러 문자열 결합:");
+    let words = vec!["안녕", "하세요", "반갑습니다"];
+    let result = words.iter().fold(String::empty(), |acc, word| acc.append(&word.to_string()));
+    println!("결합 결과: '{}'", result);
 } 
